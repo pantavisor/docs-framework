@@ -1,10 +1,11 @@
-# CLAUDE.md — running evaluations and applying fixes
+# CLAUDE.md — running evaluations, audits, and applying fixes
 
-This file covers the operational side of two things: running a persona evaluation
-against the live docs, and turning one finding from an `answers/` report into a
-draft PR. The processes themselves are `RUNBOOK.md` and `FIXBOOK.md` — read the
-relevant one first; this file adds the concrete steps and conventions this repo has
-settled on in practice.
+This file covers the operational side of three things: running a persona evaluation
+against the live docs, running an `AGENTS.md`-compliance audit against a repo
+checkout, and turning one finding from an `answers/` or `audits/` report into a
+draft PR. The processes themselves are `RUNBOOK.md`, `AUDITBOOK.md`, and
+`FIXBOOK.md` — read the relevant one first; this file adds the concrete steps and
+conventions this repo has settled on in practice.
 
 ## Running a persona evaluation
 
@@ -36,14 +37,41 @@ fresh `claude -p` invocation.
   and where these commits get pushed is a separate, explicit decision, not a
   default.
 
-## Applying a fix from an `answers/` report
+## Running a docs audit
+
+Follow `AUDITBOOK.md` end to end — it checks a repo's `docs/` tree against that
+repo's *own* `AGENTS.md` (Documentation Structure, Actionability, Link
+Conventions), not the live site, and files the report to `audits/`. This is a
+different kind of run from a persona evaluation — no character to stay in, no
+live-site fence — but the same operational discipline applies:
+
+- **Invocation shorthand:** `repo=<meta-pantavisor|pantavisor> [section=<all|subdir>]`
+  — e.g. "repo=meta-pantavisor section=overview". Don't accept a free-form
+  request ("check the docs for AGENTS.md compliance") — ask for whichever piece
+  is missing rather than guessing. Only repos with an `AGENTS.md` containing the
+  three target sections are supported today (`pvr` isn't, yet).
+- **Repo checkout location** — same as the fix workflow below:
+  `../docs-fix-repos/<repo>/`. Clone if missing, `git pull` if present; this run
+  needs current source, not a stale checkout.
+- **Fetch `AGENTS.md` fresh every run.** Never rely on a summary from a prior
+  session or from this file — `AGENTS.md` is a living file in the target repo,
+  and meta-pantavisor's and pantavisor's versions already use different
+  directory names for parallel rules.
+- **Don't push.** Commit the new report file and the updated `audits/index.md`
+  in this repo, same as any `AUDITBOOK.md` run, never push automatically.
+
+## Applying a fix from an `answers/` or `audits/` report
 
 ### Invocation
 
-A request to "apply the fix(es) from `answers/<NN>-<slug>/<report>.md`" means:
-follow `FIXBOOK.md`'s steps 1–5 (parse the finding, route to the owning repo,
-locate and re-verify the source file) for each finding in scope, then follow
-the git/PR workflow below instead of `FIXBOOK.md`'s generic step 6.
+A request to "apply the fix(es) from `answers/<NN>-<slug>/<report>.md`" (a
+persona finding) or `audits/<repo>/<report>.md` (an `AGENTS.md`-compliance
+finding) means: follow `FIXBOOK.md`'s steps 1–5 (parse the finding, route to
+the owning repo, locate and re-verify the source file) for each finding in
+scope, then follow the git/PR workflow below instead of `FIXBOOK.md`'s generic
+step 6. An `audits/` report's finding is already scoped to one repo (the one
+that was audited), so step 2's URL-segment routing table isn't needed for
+those — go straight to locating the file in that repo's checkout.
 
 **Scope check first.** `FIXBOOK.md` defaults to one finding per invocation. If
 the user's request doesn't say how many findings to fix, ask — don't silently
@@ -85,10 +113,13 @@ instead of re-cloning.
    (or already-resolved) by page/section.
 3. Push the branch to `origin` and open a **draft** PR against the default
    branch with `gh pr create --draft`. PR body sections:
-   - **Origin** — link (or path) to the source `answers/` report file, plus
-     persona/prompt/date.
-   - **What blocked the reader** — one bullet per finding: severity, a short
-     quote of "What blocked me" and the Evidence, straight from the report.
+   - **Origin** — link (or path) to the source `answers/` or `audits/` report
+     file, plus persona/prompt/date (for an `answers/` report) or repo/section/
+     date (for an `audits/` report).
+   - **What blocked the reader** (`answers/`) or **What the rule requires**
+     (`audits/`) — one bullet per finding: severity, and either a quote of
+     "What blocked me" + Evidence, or the violated rule + Evidence, straight
+     from the report.
    - **What changed and why** — per file, what was edited and which
      finding(s) it closes; note any finding found already-resolved.
    - **Status** — explicit note that this is a draft opened from an
