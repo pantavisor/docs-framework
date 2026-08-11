@@ -2,12 +2,15 @@
 
 A pack of reader personas that drive a model through real tasks against the live
 Pantavisor docs, reporting exactly where each reader stalls. `RUNBOOK.md` runs a check
-and files a report; `FIXBOOK.md` turns one finding from that report into a draft PR
-against the repo that actually owns the affected page.
+and files a report; `AUDITBOOK.md` runs a different kind of check — a repo's docs
+against its own `AGENTS.md` rules, not the live site — and files a report the same
+way; `FIXBOOK.md` turns one finding from either report into a draft PR against the
+repo that actually owns the affected page.
 
-Runs target `https://docs.pantavisor.io/development/` by default (see
-[Versions](#versions) to target another one). No local docs checkout is needed to run a
-check — only `FIXBOOK.md` needs one, to make the actual edit.
+Persona runs target `https://docs.pantavisor.io/development/` by default (see
+[Versions](#versions) to target another one) and need no local checkout. `AUDITBOOK.md`
+and `FIXBOOK.md` both work against a repo checkout instead — the live site doesn't
+expose source markdown to check structure/actionability/links against, or to edit.
 
 ## What's here
 
@@ -16,7 +19,9 @@ check — only `FIXBOOK.md` needs one, to make the actual edit.
 | `personas/01-yocto-no-containers/` … `12-ai-agent-consumer/` | One folder per persona: `persona.md` (scope + persona card) plus `promptA.md`/`B`/`C`. |
 | `RUNBOOK.md` | Runs one persona/prompt pair against the live docs and files the report. |
 | `answers/` | One report file per run, under `<NN>-<persona-slug>/`, plus `index.md`. |
-| `FIXBOOK.md` | Turns one finding from an `answers/` report into a draft PR in the owning repo. |
+| `AUDITBOOK.md` | Checks one repo's `docs/` tree against that repo's own `AGENTS.md` and files the report. |
+| `audits/` | One report file per run, under `<repo>/`, plus `index.md`. |
+| `FIXBOOK.md` | Turns one finding from an `answers/` or `audits/` report into a draft PR in the owning repo. |
 | `rubric.md` | Severity scale, gap taxonomy, report format. Every run reports against this. |
 | `ground-truth.md` | Confirmed gaps mapped to the persona that should catch each — the answer key for validating *prompts*, not docs. |
 
@@ -90,6 +95,31 @@ One finding per invocation — same reasoning as one prompt per `RUNBOOK.md` ses
 so a fix is reviewable and scoped. `FIXBOOK.md` locates the real source file, re-checks
 the gap still exists, makes the minimal edit, and opens a **draft PR** — it never
 merges. See `FIXBOOK.md` for the full routing logic and edge cases.
+
+## Audit the docs against their own AGENTS.md
+
+Separate from persona evaluation: `meta-pantavisor` and `pantavisor` each carry an
+`AGENTS.md` at their repo root with rules for how their own `docs/` should be
+organized (Documentation Structure), whether a feature description gives the reader
+something to actually do (Actionability), and how links should be written (Link
+Conventions). `AUDITBOOK.md` checks a repo's current `docs/` against its *own*
+`AGENTS.md` — fetched fresh every run, since the two repos' rules are already
+parallel but not identical, and either can change independently.
+
+```bash
+claude -p --permission-mode acceptEdits \
+  "Follow AUDITBOOK.md in the docs-eval repo. repo=meta-pantavisor section=overview"
+```
+
+One command = one repo + one optional section scope; each writes its report to
+`audits/<repo>/`. Findings from an audit feed into the same `FIXBOOK.md` draft-PR
+flow as a persona finding — see `CLAUDE.md`'s "Applying a fix" section, which accepts
+either report type. Suggested cadence is much lower than persona runs (`AGENTS.md`
+rules change rarely) — monthly per repo is a reasonable start.
+
+This never blocks anything — same model as the rest of this pack. A CI check that
+actually fails a PR on a Link Conventions violation would be a separate, follow-on
+piece of work living in the target repo's own `.github/workflows/`, not here.
 
 ## Versions
 
