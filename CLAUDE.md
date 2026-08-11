@@ -39,24 +39,30 @@ fresh `claude -p` invocation.
 
 ## Running a docs audit
 
-Follow `AUDITBOOK.md` end to end — it checks a repo's `docs/` tree against that
-repo's *own* `AGENTS.md` (Documentation Structure, Actionability, Link
-Conventions), not the live site, and files the report to `audits/`. This is a
-different kind of run from a persona evaluation — no character to stay in, no
-live-site fence — but the same operational discipline applies:
+Follow `AUDITBOOK.md` end to end — it checks a repo's docs **as published on
+`docs.pantavisor.io`** against that repo's *own* `AGENTS.md` (Documentation
+Structure, Actionability, Link Conventions). Same data source as a persona
+run (the live site, no checkout), different purpose (rule compliance, not a
+simulated reader) — see `AUDITBOOK.md`'s "What live-site auditing can and
+can't verify" before running one.
 
-- **Invocation shorthand:** `repo=<meta-pantavisor|pantavisor> [section=<all|subdir>]`
-  — e.g. "repo=meta-pantavisor section=overview". Don't accept a free-form
-  request ("check the docs for AGENTS.md compliance") — ask for whichever piece
-  is missing rather than guessing. Only repos with an `AGENTS.md` containing the
-  three target sections are supported today (`pvr` isn't, yet).
-- **Repo checkout location** — same as the fix workflow below:
-  `../docs-fix-repos/<repo>/`. Clone if missing, `git pull` if present; this run
-  needs current source, not a stale checkout.
-- **Fetch `AGENTS.md` fresh every run.** Never rely on a summary from a prior
-  session or from this file — `AGENTS.md` is a living file in the target repo,
-  and meta-pantavisor's and pantavisor's versions already use different
-  directory names for parallel rules.
+- **Invocation shorthand:** `repo=<meta-pantavisor|pantavisor>
+  [version=<VERSION>] [section=<all|subdir>]` — e.g. "repo=meta-pantavisor
+  section=overview" (defaults to `version=development`). Don't accept a
+  free-form request ("check the docs for AGENTS.md compliance") — ask for
+  whichever piece is missing rather than guessing. Only repos with an
+  `AGENTS.md` containing the three target sections are supported today
+  (`pvr` isn't, yet). "Master version" in a request means `development` —
+  there's no literal `/master/` path on the site.
+- **Fetch `AGENTS.md` fresh every run**, via `gh api
+  repos/pantavisor/<repo>/contents/AGENTS.md` — no checkout needed for this.
+  Never rely on a summary from a prior session or from this file — it's a
+  living file in the target repo, and meta-pantavisor's and pantavisor's
+  versions already use different directory names for parallel rules.
+- **No checkout for the audit itself** — only `FIXBOOK.md`'s fix-application
+  step needs one (see "Repo checkout location" below), to make the actual
+  edit and to confirm the source-level Link Conventions detail the live site
+  can't show.
 - **Don't push.** Commit the new report file and the updated `audits/index.md`
   in this repo, same as any `AUDITBOOK.md` run, never push automatically.
 
