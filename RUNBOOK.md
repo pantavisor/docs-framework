@@ -105,7 +105,15 @@ unless you'd confirm the same page is present-but-broken under `development` too
    Pull "Outcome" and "Worst finding" straight from the report's own closing summary —
    don't re-derive them.
 
-7. **Commit** the new report file and the updated `answers/index.md` with git. Use a
+   Then append the same row's Date/Version/Model/Outcome/Worst finding/Report
+   fields to `answers/<NN>-persona-slug/README.md`, under that prompt letter's
+   `## Prompt <X> — ...` heading, newest-first within it (create the file from
+   the pattern in an existing persona's `README.md` if this persona doesn't
+   have one yet). This is a human-readable, per-persona rollup of the same
+   data — not read by any run, so it can't leak across the prompt fence.
+
+7. **Commit** the new report file and the updated `answers/index.md` (and the
+   persona's `README.md`) with git. Use a
    commit message like `docs-eval: persona 07 prompt B run (2026-07-30)` — append the
    version if it isn't `development`, e.g. `... (2026-07-30, stable)`. **Do not push.**
    Whether these commits get pushed/synced anywhere is a decision for whoever configured
