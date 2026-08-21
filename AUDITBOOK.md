@@ -224,11 +224,17 @@ against.
 
    Pull "Worst finding" straight from the report's own closing summary.
 
-9. **Commit** the new report file and the updated `audits/index.md` with git,
-   in **this** repo (`docs-framework`) — no target-repo checkout is touched
-   by an audit run. Commit message like `docs-audit: meta-pantavisor overview
-   run (2026-08-11)`. **Do not push.** Same rule as `RUNBOOK.md` step 7 —
-   whether/where these commits get pushed is a separate, explicit decision.
+   Then append the same row's Date/Version/Section/Model/Worst finding/Report
+   fields to `audits/<repo>/README.md` (create it from the pattern in the
+   other repo's `README.md` if this repo doesn't have one yet) — a
+   human-readable rollup of the same data, filtered to this repo.
+
+9. **Commit** the new report file and the updated `audits/index.md` (and the
+   repo's `README.md`) with git, in **this** repo (`docs-framework`) — no
+   target-repo checkout is touched by an audit run. Commit message like
+   `docs-audit: meta-pantavisor overview run (2026-08-11)`. **Do not push.**
+   Same rule as `RUNBOOK.md` step 7 — whether/where these commits get pushed
+   is a separate, explicit decision.
 
 ## Suggested cadence
 

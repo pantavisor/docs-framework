@@ -14,6 +14,18 @@ Only `FIXBOOK.md` works against a repo checkout — to make the actual edit, and
 confirm the source-level detail the live site can't show (see `AUDITBOOK.md`'s
 "What live-site auditing can and can't verify").
 
+## Browse results
+
+Each `personas/<NN>-slug/` and `answers/<NN>-slug/` folder has its own
+`README.md` — a landing page for that persona (its prompts at a glance) and a
+rollup of its runs grouped by prompt, respectively. Start at
+[`personas/01-yocto-no-containers/README.md`](personas/01-yocto-no-containers/README.md)
+for an example, or jump straight to [`answers/DASHBOARD.md`](answers/DASHBOARD.md)
+for a cross-persona view — severity counts, gap-tag frequency, and which
+findings keep recurring across different personas. The dashboard is a manual,
+periodically-regenerated snapshot, not updated on every run — see its header
+for how to refresh it.
+
 ## What's here
 
 | File | Purpose |

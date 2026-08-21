@@ -8,10 +8,10 @@ time.
 
 | Level | Name | Test |
 |---|---|---|
-| **S1** | Blocker | I could not complete the task from the docs alone. I had to guess, leave the docs, or stop. |
-| **S2** | Detour | I completed it, but only by leaving the intended path — another repo's docs, a README, an external site. |
-| **S3** | Friction | I completed it, but a term went undefined or a rationale was missing and I proceeded on assumption. |
-| **S4** | Polish | Inconsistency, stale content, dead index entry, missing frontmatter. Didn't block me. |
+| **S1** | Critical | I could not complete the task from the docs alone. I had to guess, leave the docs, or stop. |
+| **S2** | Major | I completed it, but only by leaving the intended path — another repo's docs, a README, an external site. |
+| **S3** | Minor | I completed it, but a term went undefined or a rationale was missing and I proceeded on assumption. |
+| **S4** | Trivial | Inconsistency, stale content, dead index entry, missing frontmatter. Didn't block me. |
 
 The line that matters most is S1 vs S2. If you *found* the answer somewhere on the
 version of `docs.pantavisor.io` this run targets, it's S2 at worst — the information
