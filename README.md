@@ -4,15 +4,17 @@ A pack of reader personas that drive a model through real tasks against the live
 Pantavisor docs, reporting exactly where each reader stalls. `RUNBOOK.md` runs a check
 and files a report; `AUDITBOOK.md` runs a different kind of check against the same
 live site — a repo's published docs against its own `AGENTS.md` rules, not a
-simulated reader — and files a report the same way; `FIXBOOK.md` turns one finding
-from either report into a draft PR against the repo that actually owns the affected
-page.
+simulated reader; `CODECHECKBOOK.md` runs a third kind of check, against neither the
+live site nor a written rule but a repo's actual **source code**, to catch docs that
+drifted from what the code now does; `FIXBOOK.md` turns one finding from any of the
+three into a draft PR against the repo that actually owns the affected page.
 
-Both `RUNBOOK.md` and `AUDITBOOK.md` target `https://docs.pantavisor.io/<VERSION>/`
-by default `development` (see [Versions](#versions)) and need no local checkout.
-Only `FIXBOOK.md` works against a repo checkout — to make the actual edit, and to
-confirm the source-level detail the live site can't show (see `AUDITBOOK.md`'s
-"What live-site auditing can and can't verify").
+`RUNBOOK.md` and `AUDITBOOK.md` target `https://docs.pantavisor.io/<VERSION>/` by
+default `development` (see [Versions](#versions)) and need no local checkout.
+`CODECHECKBOOK.md` and `FIXBOOK.md` both work against a repo checkout instead — the
+former to read the actual source, the latter to make the actual edit and confirm the
+source-level detail the live site can't show (see `AUDITBOOK.md`'s "What live-site
+auditing can and can't verify").
 
 ## Browse results
 
@@ -24,7 +26,9 @@ for an example, or jump straight to [`answers/DASHBOARD.md`](answers/DASHBOARD.m
 for a cross-persona view — severity counts, gap-tag frequency, and which
 findings keep recurring across different personas. The dashboard is a manual,
 periodically-regenerated snapshot, not updated on every run — see its header
-for how to refresh it.
+for how to refresh it. `codechecks/<repo>/README.md` (`pantavisor`,
+`meta-pantavisor`, `pvr`) has the same per-repo rollup treatment for
+source-vs-docs runs.
 
 ## What's here
 
@@ -35,7 +39,9 @@ for how to refresh it.
 | `answers/` | One report file per run, under `<NN>-<persona-slug>/`, plus `index.md`. |
 | `AUDITBOOK.md` | Checks one repo's `docs/` tree against that repo's own `AGENTS.md` and files the report. |
 | `audits/` | One report file per run, under `<repo>/`, plus `index.md`. |
-| `FIXBOOK.md` | Turns one finding from an `answers/` or `audits/` report into a draft PR in the owning repo. |
+| `CODECHECKBOOK.md` | Checks a repo's `docs/` tree against its own source code (`pantavisor`, `meta-pantavisor`, `pvr`) and files the report. |
+| `codechecks/` | One report file per run, under `<repo>/`, plus `index.md`. |
+| `FIXBOOK.md` | Turns one finding from an `answers/`, `audits/`, or `codechecks/` report into a draft PR in the owning repo. |
 | `rubric.md` | Severity scale, gap taxonomy, report format. Every run reports against this. |
 | `ground-truth.md` | Confirmed gaps mapped to the persona that should catch each — the answer key for validating *prompts*, not docs. |
 
@@ -140,6 +146,36 @@ rules change rarely) — monthly per repo is a reasonable start.
 This never blocks anything — same model as the rest of this pack. A CI check that
 actually fails a PR on a Link Conventions violation would be a separate, follow-on
 piece of work living in the target repo's own `.github/workflows/`, not here.
+
+## Check docs against the actual code
+
+A third, different kind of check: each repo's CLI flags, config keys, feature
+defaults, or build targets are literal strings in source — `CODECHECKBOOK.md` diffs
+them against that repo's own `docs/` tree to catch a shipped symbol with no doc
+mention, or a doc describing one that's been removed or that disagrees with another
+doc page. Unlike `RUNBOOK.md` and `AUDITBOOK.md`, this needs a repo checkout — there's
+no live-site equivalent of "does this still exist in source" — so it reuses
+`CLAUDE.md`'s `../docs-fix-repos/` checkout convention. See `CODECHECKBOOK.md`'s "What
+this check can and can't verify" for the exact boundary (literal presence/absence and
+obvious value mismatches; not prose quality, not runtime behavior), and its "Repo
+scope" table for what's diffable in each of the three supported repos:
+
+| Repo | Diffable surface |
+|---|---|
+| `pantavisor` | CLI tools (`tools/pvcontrol`, `tools/pventer`, `pvtx/`), config keys (`config.h`'s `PV_*`/`PH_*` enum), REST endpoints (`ctrl/ctrl_*_ep.c`) |
+| `meta-pantavisor` | Build-time feature tokens (`PANTAVISOR_FEATURES` default in `classes/pvbase.bbclass`), named KAS build targets (`kas/build-configs/*.yaml`) |
+| `pvr` | Go CLI flags/subcommands (`cmd/**/*.go`, `urfave/cli`), the `PV_*` template-argument vocabulary (`docs/PVR_TEMPLATES.md`) |
+
+```bash
+claude -p --permission-mode acceptEdits \
+  "Follow CODECHECKBOOK.md in the docs-eval repo. repo=pantavisor section=cli"
+```
+
+One command = one repo + one optional ref/section scope (defaults to that repo's
+default branch, `section=all`); each writes its report to `codechecks/<repo>/`.
+Findings feed into the same `FIXBOOK.md` draft-PR flow as a persona or audit finding —
+see `CLAUDE.md`'s "Applying a fix" section. Suggested cadence: once per tagged
+release rather than on a calendar, since symbols only change when a release ships.
 
 ## Versions
 
