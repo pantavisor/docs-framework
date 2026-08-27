@@ -7,7 +7,8 @@ the checkout URL. See [`../../CODECHECKBOOK.md`](../../CODECHECKBOOK.md) for
 the process. Rows mirror [`../index.md`](../index.md), filtered to this repo,
 grouped by section.
 
-No runs yet — this file is bootstrapped ahead of the first invocation. The
-first `CODECHECKBOOK.md` run appends its row here under the matching
-`## <section>` heading (add the heading if it's the first row for that
-section).
+## all
+
+| Date | Ref | Commit | Model | Worst finding | Report |
+|---|---|---|---|---|---|
+| 2026-08-27 | master | 5c1cc35 | claude-sonnet-5 | S1: the entire 10-flag global/root flag set (`--user`, `--password`, `--access-token`, `--baseurl`, `--http-proxy`, `--repo-baseurl`, `--config-dir`, `--debug`, `--disable-self-upgrade`, `--insecure`) has zero documentation anywhere in `docs/` | [link](2026-08-27-all-5c1cc35-claude-sonnet-5.md) |
