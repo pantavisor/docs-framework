@@ -8,7 +8,8 @@ surface looks different from `pantavisor`'s). See
 mirror [`../index.md`](../index.md), filtered to this repo, grouped by
 section.
 
-No runs yet — this file is bootstrapped ahead of the first invocation. The
-first `CODECHECKBOOK.md` run appends its row here under the matching
-`## <section>` heading (add the heading if it's the first row for that
-section).
+## all
+
+| Date | Ref | Commit | Model | Worst finding | Report |
+|---|---|---|---|---|---|
+| 2026-08-27 | master | f9613e7 | claude-sonnet-5 | S1: the `.github/configs/release/` path was removed from source (commit `7cd9f72`) but is still the literal, copy-pasteable command in 14 docs files, and is asserted as a real path in `build-system.md`'s own path-reference table | [link](2026-08-27-all-f9613e7-claude-sonnet-5.md) |

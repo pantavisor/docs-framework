@@ -1,0 +1,28 @@
+# Code check — pvr — all — 2026-08-27
+
+Repo: pvr
+Ref: master
+Commit: 5c1cc3524751204b480840baa86df44e1dc84c46
+Section: all
+Date: 2026-08-27
+Model: claude-sonnet-5
+Run by: claude -p (inline session, CODECHECKBOOK.md steps 1–5 delegated to a subagent)
+
+## Findings
+
+| Symbol | Surface | Source location | Docs location | Evidence | Severity | Category | Suggested fix |
+|---|---|---|---|---|---|---|---|
+| Root/global flags: `--user,-u`, `--password,-p`, `--access-token,-a`, `--baseurl,-b`, `--http-proxy`, `--repo-baseurl,-r`, `--config-dir,-c`, `--debug,-d`, `--disable-self-upgrade`, `--insecure,-i` | cli | `cmd/pvrcli/pvrcli.go:73-128` (`cliApp.Flags`) | none | Source declares 10 global `cliApp.Flags` with env vars `PVR_USERNAME`, `PVR_PASSWORD`, `PVR_ACCESSTOKEN`, `PVR_BASEURL`, `PVR_HTTP_PROXY`, `PVR_REPO_BASEURL`, `PVR_CONFIG_DIR`, `PVR_DEBUG`, `PVR_DISABLE_SELF_UPGRADE`, `PVR_INSECURE`. Grep for each string across `docs/` returns nothing except one incidental mention of `PVR_BASEURL` in prose (`docs/commands/auth.md:23`) — no flag table, no page documents any of these 10 flags/env vars. | S1 | `undocumented` | Add a "Global Flags" section (e.g. to `docs/index.md`) documenting all 10 root flags with their env vars and defaults. |
+| `pvr claim` (root-level subcommand, alias `cl`) | cli | `cmd/claim.go:27-35` (`CommandClaim`), registered `cmd/pvrcli/pvrcli.go:222` | none | `CommandClaim()` declares `Name: "claim"`, `Aliases: []string{"cl"}`, flag `-c, --challenge`. `docs/index.md`'s Command Reference table lists every other top-level command by category but has no `claim` entry; no `docs/commands/*.md` page mentions it. | S1 | `undocumented` | Add a `pvr claim` section to `docs/commands/auth.md` (or `device.md`) with its `--challenge` flag, and link it from `docs/index.md`'s Command Reference table. |
+| `pvr device tty --baud, -b` | cli | `cmd/device/tty.go:529` (`Name: "baud, b"`, `Value: defaultBaud`) | `docs/commands/device.md:245-251` | Source: `cli.IntFlag{Name: "baud, b", Value: defaultBaud, Usage: "Serial console baud rate (e.g. 921600)"}`; the command's own `Description` string even says "and the baud rate specified with -b (defaults to 115200)". `device.md`'s `pvr device tty` Flags table lists only `--device, -d` and `--verbose, -v` — no `--baud` row. Zero matches for "baud" anywhere in the docs tree. | S1 | `undocumented` | Add a `--baud, -b` row to `device.md`'s `pvr device tty` flags table (default `115200`). |
+| `--runlevel` / `PV_RUNLEVEL` flag on `pvr app add` and `pvr app install` | cli | `cmd/app/appadd.go:213-217` (`Name: "runlevel"`, `EnvVar: "PVR_RUNLEVEL"`), `cmd/app/appinstall.go:152-157` (`Name: "runlevel"`, `EnvVar: "PVR_RUNLEVEL"`, `Value: "app"`) | `docs/commands/app.md:36-58` (add), `docs/commands/app.md:111-124` (install) | Both commands declare a real, shipping `--runlevel` flag (`app install`'s defaults to `"app"`). `app.md`'s flag tables for `pvr app add` (18 rows) and `pvr app install` (10 rows) have no `--runlevel` row. `PV_RUNLEVEL` is described only as a template-args table entry in `docs/PVR_TEMPLATES.md:97`, not connected back to the CLI flag from `app.md`. | S1 | `undocumented` | Add a `--runlevel` row to `app.md`'s `pvr app add` and `pvr app install` flag tables, noting it's deprecated in favor of `--group` (per `PVR_TEMPLATES.md`). |
+| `pvr sig add` example flag `--parts` | cli | `cmd/sig/sigadd.go:165` (`Name: "part, p"`), Action reads `c.String("part")` — no `parts` (plural) flag exists | `docs/commands/sig.md:20` | Source only ever registers/reads `--part, -p` (singular). `sig.md`'s own flag table correctly lists `--part, -p`, but its code example on line 20 reads `pvr sig add --parts="nginx,base-os" --include=... --exclude=...` — copying that command verbatim would fail with an unknown-flag error. | S2 | `mismatched` | Fix the example on `sig.md:20` to use `--part` instead of `--parts`. |
+
+## Closing summary
+
+- **Surfaces covered**: `cli` (39 top-level command/subcommand-group registrations across `cmd/pvrcli/pvrcli.go` + `cmd/**/*.go`, ~140 flag literals total, plus the 10 root/global flags, checked against all 11 pages under `docs/commands/*.md` and `docs/index.md`'s Command Reference table); `templates` (58 distinct `PV_*`/`LXC_*`/`PVR_LXC_*` template-argument tokens extracted from `templates/builtin-lxc-docker.go` plus `PV_GROUP`, checked in both directions against `docs/PVR_TEMPLATES.md`).
+- **Worst finding**: S1 — the entire 10-flag global/root flag set (`--user`, `--password`, `--access-token`, `--baseurl`, `--http-proxy`, `--repo-baseurl`, `--config-dir`, `--debug`, `--disable-self-upgrade`, `--insecure`) has zero documentation anywhere in `docs/` — these are the most fundamental, most-used flags in the whole CLI (auth, TLS, proxy, config location) and a reader has no in-docs way to discover any of them.
+- **What's compliant**: `templates` is fully compliant in both directions. Within `cli`, `repo.md`, `push.md`, `clone-get-merge.md`, `wifi.md`, `deprecated.md`, `utils.md`, `lowlevel.md`, and all of `device.md` except the `--baud` gap are fully accurate against source. `app.md`'s `--group`/`--restart-policy`/`--status-goal` rows are still accurate — usage text, env vars, and valid-value lists all match source.
+- **Ground truth**: `pvr`, commit `5c1cc3524751204b480840baa86df44e1dc84c46` (`5c1cc35`), branch `master`, checked 2026-08-27.
+
+**Note:** `cmd/app/appupdate.go:113-115` reads `c.String("runlevel")` in its `Action`, but `appupdate.go`'s own `cmd.Flags` never declares a `runlevel` flag — this is dead/always-empty source code, a latent bug worth a human's attention, not a documentation gap, so it's not in the findings table above.
