@@ -165,6 +165,13 @@ clone URL. This is the same location `CODECHECKBOOK.md` uses for its own
      finding: severity, and a quote of "What blocked me" + Evidence, the
      violated rule + Evidence, or the source Evidence + doc Evidence pairing,
      straight from the report.
+   - **Spell out severity, don't cite the bare code.** A report's own table
+     uses `S1`–`S4`, but a commit message or PR body going to a maintainer
+     outside this pack should say `rubric.md`'s plain-English name instead —
+     Critical / Major / Minor / Trivial — since the raw code means nothing
+     without this repo's context. `S1 (stale)` becomes `Critical (stale)`;
+     the category tag (`stale`, `undocumented`, `mismatched`, `unlinked`,
+     etc.) stays as-is, it's already a plain word.
    - **What changed and why** — per file, what was edited and which
      finding(s) it closes; note any finding found already-resolved.
    - **Status** — explicit note that this is a draft opened from an
