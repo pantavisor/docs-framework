@@ -1,11 +1,12 @@
-# CLAUDE.md — running evaluations, audits, and applying fixes
+# CLAUDE.md — running evaluations, audits, code checks, and applying fixes
 
-This file covers the operational side of three things: running a persona evaluation
-against the live docs, running an `AGENTS.md`-compliance audit against a repo
-checkout, and turning one finding from an `answers/` or `audits/` report into a
-draft PR. The processes themselves are `RUNBOOK.md`, `AUDITBOOK.md`, and
-`FIXBOOK.md` — read the relevant one first; this file adds the concrete steps and
-conventions this repo has settled on in practice.
+This file covers the operational side of four things: running a persona evaluation
+against the live docs, running an `AGENTS.md`-compliance audit against the live docs,
+running a source-vs-docs code check against a repo checkout, and turning one finding
+from an `answers/`, `audits/`, or `codechecks/` report into a draft PR. The processes
+themselves are `RUNBOOK.md`, `AUDITBOOK.md`, `CODECHECKBOOK.md`, and `FIXBOOK.md` —
+read the relevant one first; this file adds the concrete steps and conventions this
+repo has settled on in practice.
 
 ## Running a persona evaluation
 
@@ -66,18 +67,51 @@ can't verify" before running one.
 - **Don't push.** Commit the new report file and the updated `audits/index.md`
   in this repo, same as any `AUDITBOOK.md` run, never push automatically.
 
-## Applying a fix from an `answers/` or `audits/` report
+## Running a code-vs-docs check
+
+Follow `CODECHECKBOOK.md` end to end — it checks a repo's `docs/` tree
+against that repo's own **source code**, not against `AGENTS.md` and not the
+live site. Different data source from the other two: a repo checkout, since
+there's no live-site equivalent of "does this flag still exist in source" —
+see `CODECHECKBOOK.md`'s "What this check can and can't verify" before
+running one.
+
+- **Invocation shorthand:** `repo=<pantavisor|meta-pantavisor|pvr>
+  [ref=<git-ref>] [section=<all|repo-specific-section>]` — e.g.
+  "repo=pantavisor section=cli" or "repo=pvr section=cli" (defaults to that
+  repo's default branch, `section=all`). Don't accept a free-form request
+  ("check if the docs match the code") — ask for whichever piece is missing
+  rather than guessing. `section` values are repo-specific — see
+  `CODECHECKBOOK.md`'s "Repo scope" table (`pantavisor`: `cli`/`config`/`api`;
+  `meta-pantavisor`: `features`/`kas-targets`; `pvr`: `cli`/`templates`).
+- **Needs a checkout** — reuse `../docs-fix-repos/<repo>/` (see "Repo
+  checkout location" below), the same location `FIXBOOK.md` uses, not a
+  separate clone. `pvr` is on GitLab, not GitHub — clone from
+  `gitlab.com/pantacor/pvr`, not via `gh`. Clone if absent, `git
+  fetch`/checkout the resolved `ref` otherwise, and record the exact commit
+  SHA checked — that's this run's ground truth in place of "fetch
+  `AGENTS.md` fresh."
+- **Don't push.** Commit the new report file and the updated
+  `codechecks/index.md` in this repo, same as any `CODECHECKBOOK.md` run,
+  never push automatically. The target checkout itself is read-only for this
+  check — nothing is ever committed there.
+
+## Applying a fix from an `answers/`, `audits/`, or `codechecks/` report
 
 ### Invocation
 
 A request to "apply the fix(es) from `answers/<NN>-<slug>/<report>.md`" (a
-persona finding) or `audits/<repo>/<report>.md` (an `AGENTS.md`-compliance
-finding) means: follow `FIXBOOK.md`'s steps 1–5 (parse the finding, route to
-the owning repo, locate and re-verify the source file) for each finding in
-scope, then follow the git/PR workflow below instead of `FIXBOOK.md`'s generic
-step 6. An `audits/` report's finding is already scoped to one repo (the one
-that was audited), so step 2's URL-segment routing table isn't needed for
-those — go straight to locating the file in that repo's checkout.
+persona finding), `audits/<repo>/<report>.md` (an `AGENTS.md`-compliance
+finding), or `codechecks/<repo>/<report>.md` (a source-vs-docs finding) means:
+follow `FIXBOOK.md`'s steps 1–5 (parse the finding, route to the owning repo,
+locate and re-verify the source file) for each finding in scope, then follow
+the git/PR workflow below instead of `FIXBOOK.md`'s generic step 6. An
+`audits/` or `codechecks/` report's finding is already scoped to one repo (the
+one that was audited or checked), so step 2's URL-segment routing table isn't
+needed for those — go straight to locating the file in that repo's checkout
+(for a `codechecks/` finding, the checkout is already on disk at
+`../docs-fix-repos/pantavisor/` from the check itself — reuse it, don't
+re-clone).
 
 **Scope check first.** `FIXBOOK.md` defaults to one finding per invocation. If
 the user's request doesn't say how many findings to fix, ask — don't silently
@@ -90,7 +124,10 @@ Clone target repos (`meta-pantavisor`, `pantavisor`, `pvr`) into
 `../docs-fix-repos/<repo-name>/` (i.e. a sibling of this `docs-framework`
 checkout), not directly beside other project checkouts. Create the folder if
 it doesn't exist yet. Reuse an existing checkout there if one already exists
-instead of re-cloning.
+instead of re-cloning. `pvr` is on GitLab (`gitlab.com/pantacor/pvr`), the
+other two on GitHub — same location convention either way, just a different
+clone URL. This is the same location `CODECHECKBOOK.md` uses for its own
+(read-only) checkout — reuse whichever of the two processes cloned it first.
 
 ### Making the edit
 
@@ -119,13 +156,15 @@ instead of re-cloning.
    (or already-resolved) by page/section.
 3. Push the branch to `origin` and open a **draft** PR against the default
    branch with `gh pr create --draft`. PR body sections:
-   - **Origin** — link (or path) to the source `answers/` or `audits/` report
-     file, plus persona/prompt/date (for an `answers/` report) or repo/section/
-     date (for an `audits/` report).
-   - **What blocked the reader** (`answers/`) or **What the rule requires**
-     (`audits/`) — one bullet per finding: severity, and either a quote of
-     "What blocked me" + Evidence, or the violated rule + Evidence, straight
-     from the report.
+   - **Origin** — link (or path) to the source `answers/`, `audits/`, or
+     `codechecks/` report file, plus persona/prompt/date (for an `answers/`
+     report), repo/section/date (for an `audits/` report), or
+     repo/section/commit/date (for a `codechecks/` report).
+   - **What blocked the reader** (`answers/`), **What the rule requires**
+     (`audits/`), or **What the code says** (`codechecks/`) — one bullet per
+     finding: severity, and a quote of "What blocked me" + Evidence, the
+     violated rule + Evidence, or the source Evidence + doc Evidence pairing,
+     straight from the report.
    - **What changed and why** — per file, what was edited and which
      finding(s) it closes; note any finding found already-resolved.
    - **Status** — explicit note that this is a draft opened from an
