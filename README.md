@@ -36,6 +36,7 @@ source-vs-docs runs.
 |---|---|
 | `personas/01-yocto-no-containers/` … `12-ai-agent-consumer/` | One folder per persona: `persona.md` (scope + persona card) plus `promptA.md`/`B`/`C`. |
 | `RUNBOOK.md` | Runs one persona/prompt pair against the live docs and files the report. |
+| `scripts/run-all-personas.sh` | Batch driver for `RUNBOOK.md`: one `claude -p` session per pair, over any subset of personas/prompts. |
 | `answers/` | One report file per run, under `<NN>-<persona-slug>/`, plus `index.md`. |
 | `AUDITBOOK.md` | Checks one repo's `docs/` tree against that repo's own `AGENTS.md` and files the report. |
 | `audits/` | One report file per run, under `<repo>/`, plus `index.md`. |
@@ -57,6 +58,20 @@ stopping to ask (swap in whatever your setup uses instead). One command = one pe
 one prompt letter; each writes its own file to `answers/<NN>-<slug>/`. A full pass on
 one persona is three separate invocations (`prompt=A`, `B`, `C`) — never batched, since
 each needs its own cold session (see [Rules](#rules-that-keep-results-meaningful)).
+
+To run more than one pair, use the batch driver rather than a loop in one session —
+it starts a separate `claude -p` process per pair, which is what keeps each one cold:
+
+```bash
+./scripts/run-all-personas.sh              # all 36 pairs
+./scripts/run-all-personas.sh 07           # persona 07, prompts A/B/C
+./scripts/run-all-personas.sh 07 B         # one pair
+DRY_RUN=1 ./scripts/run-all-personas.sh    # print the invocations, run nothing
+```
+
+A failing pair is reported at the end and doesn't stop the rest. Pass a third argument
+to target a non-default version (`./scripts/run-all-personas.sh '' '' stable`) — read
+[Versions](#versions) first, since mixing versions into one series breaks comparability.
 
 **Personas** — pick a `persona=<NN>`:
 
@@ -190,7 +205,8 @@ deliberate audit rather than folding them into a regular check cadence.
 
 - **Fresh session per persona, one prompt per session.** Context bleed destroys the
   knowledge boundary a persona depends on — `RUNBOOK.md`/`claude -p` invocations do this
-  automatically; don't paste multiple personas or prompts into one manual session.
+  automatically; don't paste multiple personas or prompts into one manual session, and
+  batch runs only through `scripts/run-all-personas.sh`, which forks a process per pair.
 - **Docs-only scope.** A report citing anything outside `https://docs.pantavisor.io/<VERSION>/`
   means the fence leaked — discard the run.
 - **Prefer each page's `.md` export** (`<page-url>.md`, same as the site's "Copy page"
