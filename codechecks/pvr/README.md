@@ -12,3 +12,4 @@ grouped by section.
 | Date | Ref | Commit | Model | Worst finding | Report |
 |---|---|---|---|---|---|
 | 2026-08-27 | master | 5c1cc35 | claude-sonnet-5 | S1: the entire 10-flag global/root flag set (`--user`, `--password`, `--access-token`, `--baseurl`, `--http-proxy`, `--repo-baseurl`, `--config-dir`, `--debug`, `--disable-self-upgrade`, `--insecure`) has zero documentation anywhere in `docs/` | [link](2026-08-27-all-5c1cc35-claude-sonnet-5.md) |
+| 2026-09-03 | master | 45b4dbf8 | claude-opus-5 | S1: `PVR_NOFAKEROOT` and `FAKEROOT_CMD` have zero mention anywhere in `docs/`, on the very page (`lowlevel.md`'s `pvr fakeroot` section) that explains the fakeroot behaviour they modify | [link](2026-09-03-all-45b4dbf8-claude-opus-5.md) |
